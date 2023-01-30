@@ -176,30 +176,62 @@ local config = {
 
   -- Configure plugins
   plugins = {
+    -- good vertical motions
     {
       "ggandor/leap.nvim",
       event = "VeryLazy",
-      config = function(_, opts)
+      config = function(_, _)
         local leap = require "leap"
         leap.add_default_mappings(true)
       end,
     },
+
+    -- more dot repeat actions
     { "tpope/vim-repeat" },
 
     -- jump between more things with %
     { "andymass/vim-matchup" },
+
     -- better typescript commentstrings
     { "JoosepAlviste/nvim-ts-context-commentstring" },
+
     -- dedicated git diff viewer
     {
       "sindrets/diffview.nvim",
       event = "BufRead",
     },
+
     -- colorscheme
     {
       "neanias/everforest-nvim",
       config = function() require("everforest").setup { background = "hard" } end,
     },
+
+    {
+      "gbprod/cutlass.nvim",
+      keys = {
+        "x",
+        "d",
+        "c",
+        "X",
+        "D",
+        "C",
+        "m",
+      },
+      config = function()
+        require("cutlass").setup {
+          exclude = { "ns", "nS" },
+          cut_key = "m",
+        }
+      end,
+    },
+
+    {
+      "folke/zen-mode.nvim",
+      cmd = "ZenMode",
+      config = true,
+    },
+
     -- copilot autocompletion and suggestions
     {
       "zbirenbaum/copilot.lua",
@@ -299,32 +331,11 @@ local config = {
     --   end,
     -- },
 
-    -- Plugin entries can also be used to override the default options for plugins as well
-    {
-      "goolord/alpha-nvim",
-      opts = function(_, opts)
-        -- customize the dashboard header
-        opts.section.header.val = {
-          " █████  ███████ ████████ ██████   ██████",
-          "██   ██ ██         ██    ██   ██ ██    ██",
-          "███████ ███████    ██    ██████  ██    ██",
-          "██   ██      ██    ██    ██   ██ ██    ██",
-          "██   ██ ███████    ██    ██   ██  ██████",
-          " ",
-          "    ███    ██ ██    ██ ██ ███    ███",
-          "    ████   ██ ██    ██ ██ ████  ████",
-          "    ██ ██  ██ ██    ██ ██ ██ ████ ██",
-          "    ██  ██ ██  ██  ██  ██ ██  ██  ██",
-          "    ██   ████   ████   ██ ██      ██",
-        }
-        return opts
-      end,
-    },
     {
       "jose-elias-alvarez/null-ls.nvim",
       opts = function(_, config)
         -- config variable is the default configuration table for the setup function call
-        -- local null_ls = require "null-ls"
+        local null_ls = require "null-ls"
 
         -- Check supported formatters and linters
         -- https://github.com/jose-elias-alvarez/null-ls.nvim/tree/main/lua/null-ls/builtins/formatting
@@ -332,7 +343,7 @@ local config = {
         config.sources = {
           -- Set a formatter
           -- null_ls.builtins.formatting.stylua,
-          -- null_ls.builtins.formatting.prettier,
+          null_ls.builtins.formatting.prettier,
         }
         return config -- return final config table
       end,
@@ -368,76 +379,7 @@ local config = {
         },
       },
     },
-    -- use mason-lspconfig to configure LSP installations
-    {
-      "williamboman/mason-lspconfig.nvim",
-      -- overrides `require("mason-lspconfig").setup(...)`
-      opts = {
-        -- ensure_installed = { "sumneko_lua" },
-      },
-    },
-    -- use mason-null-ls to configure Formatters/Linter installation for null-ls sources
-    {
-      "jay-babu/mason-null-ls.nvim",
-      -- overrides `require("mason-null-ls").setup(...)`
-      opts = {
-        -- ensure_installed = { "prettier", "stylua" },
-      },
-    },
-    {
-      "jay-babu/mason-nvim-dap.nvim",
-      -- overrides `require("mason-nvim-dap").setup(...)`
-      opts = {
-        -- ensure_installed = { "python" },
-      },
-    },
   },
-
-  -- Customize Heirline options
-  heirline = {
-    -- -- Customize different separators between sections
-    -- separators = {
-    --   breadcrumbs = " > ",
-    --   tab = { "", "" },
-    -- },
-    -- -- Customize colors for each element each element has a `_fg` and a `_bg`
-    -- colors = function(colors)
-    --   colors.git_branch_fg = astronvim.get_hlgroup "Conditional"
-    --   return colors
-    -- end,
-    -- -- Customize attributes of highlighting in Heirline components
-    -- attributes = {
-    --   -- styling choices for each heirline element, check possible attributes with `:h attr-list`
-    --   git_branch = { bold = true }, -- bold the git branch statusline component
-    -- },
-    -- -- Customize if icons should be highlighted
-    -- icon_highlights = {
-    --   breadcrumbs = false, -- LSP symbols in the breadcrumbs
-    --   file_icon = {
-    --     winbar = false, -- Filetype icon in the winbar inactive windows
-    --     statusline = true, -- Filetype icon in the statusline
-    --     tabline = true, -- Filetype icon in the tabline
-    --   },
-    -- },
-  },
-
-  -- This function is run last and is a good place to configuring
-  -- augroups/autocommands and custom filetypes also this just pure lua so
-  -- anything that doesn't fit in the normal config locations above can go here
-  polish = function()
-    -- Set up custom filetypes
-    -- vim.filetype.add {
-    --   extension = {
-    --     foo = "fooscript",
-    --   },
-    --   filename = {
-    --     ["Foofile"] = "fooscript",
-    --   },
-    --   pattern = {
-    --     ["~/%.config/foo/.*"] = "fooscript",
-    --   },
-    -- }
-  end,
 }
 
 return config
