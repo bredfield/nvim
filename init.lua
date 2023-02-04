@@ -138,6 +138,11 @@ local config = {
   mappings = {
     -- first key is the mode
     n = {
+      ["<M-o>"] = { "o<ESC>" },
+      ["<M-O>"] = { "O<ESC>" },
+
+      ["<C-d>"] = { "<C-d>zz" },
+      ["<C-u>"] = { "<C-u>zz" },
       -- second key is the lefthand side of the map
       -- mappings seen under group name "Buffer"
       ["<leader>bb"] = { "<cmd>tabnew<cr>", desc = "New tab" },
@@ -147,20 +152,17 @@ local config = {
       -- tables with the `name` key will be registered with which-key if it's installed
       -- this is useful for naming menus
       ["<leader>b"] = { name = "Buffers" },
-      ["<M-up>"] = { ":MoveLine(-1)<cr>==", desc = "Move line up" },
-      ["<M-down>"] = { ":MoveLine(1)<cr>==", desc = "Move line down" },
-
+      -- go-to-definition in a new split
+      ["gd"] = { "<cmd>lua vim.lsp.buf.definition()<cr>", desc = "go-to-definition" },
+      ["gv"] = { ":vsplit<CR>gd", desc = "go-to-definition-split" },
       -- quick save
-      -- ["<C-s>"] = { ":w!<cr>", desc = "Save File" },  -- change description but the same command
+      ["<C-s>"] = { ":w!<cr>", desc = "Save File" }, -- change description but the same command
     },
     t = {
       -- setting a mapping to false will disable it
       -- ["<esc>"] = false,
     },
-    v = {
-      ["<M-up>"] = { ":MoveBlock(-1)<cr>", desc = "Move lines up" },
-      ["<M-down>"] = { ":MoveBlock(1)<cr>", desc = "Move lines down" },
-    },
+    v = {},
   },
 
   -- Configure require("lazy").setup() options
@@ -184,6 +186,33 @@ local config = {
         local leap = require "leap"
         leap.add_default_mappings(true)
       end,
+    },
+
+    -- "multi select"
+    { "mg979/vim-visual-multi", branch = "master", event = "BufRead" },
+
+    {
+      "echasnovski/mini.move",
+      config = function(_, opts) require("mini.move").setup(opts) end,
+      enabled = true,
+      keys = {
+        { "<M-left>", mode = { "n", "v" } },
+        { "<M-right>", mode = { "n", "v" } },
+        { "<M-down>", mode = { "n", "v" } },
+        { "<M-up>", mode = { "n", "v" } },
+      },
+      opts = {
+        mappings = {
+          left = "<M-left>",
+          right = "<M-right>",
+          down = "<M-down>",
+          up = "<M-up>",
+          left_line = "<M-left>",
+          right_line = "<M-right>",
+          down_line = "<M-down>",
+          up_line = "<M-up>",
+        },
+      },
     },
 
     -- more dot repeat actions
@@ -343,7 +372,8 @@ local config = {
         config.sources = {
           -- Set a formatter
           -- null_ls.builtins.formatting.stylua,
-          null_ls.builtins.formatting.prettier,
+          -- null_ls.builtins.formatting.prettier,
+          null_ls.builtins.formatting.prettierd,
         }
         return config -- return final config table
       end,
