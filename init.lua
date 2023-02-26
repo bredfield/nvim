@@ -7,7 +7,6 @@
 -- normal format is "key = value". These also handle array like data structures
 -- where a value with no key simply has an implicit numeric key
 local config = {
-
   -- Configure AstroNvim updates
   -- updater = {
   --   remote = "origin", -- remote to use
@@ -28,7 +27,6 @@ local config = {
 
   -- Set colorscheme to use
   colorscheme = "everforest",
-
   -- Add highlight groups in any theme
   highlights = {
     -- init = { -- this table overrides highlights in all themes
@@ -38,7 +36,6 @@ local config = {
     --   Normal = { bg = "#000000" },
     -- },
   },
-
   -- set vim options here (vim.<first_key>.<second_key> = value)
   options = {
     opt = {
@@ -60,18 +57,17 @@ local config = {
       ui_notifications_enabled = true, -- disable notifications when toggling UI elements
     },
   },
-
   -- Diagnostics configuration (for vim.diagnostics.config({...})) when diagnostics are on
   diagnostics = {
     virtual_text = true,
     underline = true,
   },
-
   -- Extend LSP configuration
   lsp = {
     -- enable servers that you already have installed without mason
     servers = {
       -- "pyright"
+      -- "eslint",
     },
     formatting = {
       -- control auto formatting on save
@@ -99,8 +95,12 @@ local config = {
       },
     },
     -- add to the global LSP on_attach function
-    -- on_attach = function(client, bufnr)
-    -- end,
+    on_attach = function(client, bufnr)
+      vim.api.nvim_create_autocmd("BufWritePre", {
+        buffer = bufnr,
+        command = "EslintFixAll",
+      })
+    end,
 
     -- override the LSP setup handler function based on server name
     -- setup_handlers = {
@@ -115,6 +115,12 @@ local config = {
 
     -- Add overrides for LSP server settings, the keys are the name of the server
     config = {
+      tailwindcss = {
+        cmd = { "tailwindcss-language-server", "--stdio" },
+      },
+      tsserver = {
+        cmd = { "typescript-language-server", "--stdio" },
+      },
       -- example for addings schemas to yamlls
       -- yamlls = { -- override table for require("lspconfig").yamlls.setup({...})
       --   settings = {
@@ -129,7 +135,6 @@ local config = {
       -- },
     },
   },
-
   -- Mapping data with "desc" stored directly by vim.keymap.set().
   --
   -- Please use this mappings table to set keyboard mapping since this is the
@@ -143,6 +148,10 @@ local config = {
 
       ["<C-d>"] = { "<C-d>zz" },
       ["<C-u>"] = { "<C-u>zz" },
+      ["<M-left>"] = false,
+      ["<M-right>"] = false,
+      ["<M-down>"] = false,
+      ["<M-up>"] = false,
       -- second key is the lefthand side of the map
       -- mappings seen under group name "Buffer"
       ["<leader>bb"] = { "<cmd>tabnew<cr>", desc = "New tab" },
@@ -164,7 +173,6 @@ local config = {
     },
     v = {},
   },
-
   -- Configure require("lazy").setup() options
   lazy = {
     defaults = { lazy = true },
@@ -175,9 +183,14 @@ local config = {
       },
     },
   },
-
   -- Configure plugins
   plugins = {
+    {
+      "jose-elias-alvarez/typescript.nvim",
+      ft = { "ts", "js", "tsx", "jsx" },
+      opts = function() return { server = require("astronvim.utils.lsp").config "tsserver" } end,
+    },
+
     -- good vertical motions
     {
       "ggandor/leap.nvim",
@@ -189,17 +202,17 @@ local config = {
     },
 
     -- "multi select"
-    { "mg979/vim-visual-multi", branch = "master", event = "BufRead" },
+    { "mg979/vim-visual-multi",                     branch = "master", event = "BufRead" },
 
     {
       "echasnovski/mini.move",
       config = function(_, opts) require("mini.move").setup(opts) end,
       enabled = true,
       keys = {
-        { "<M-left>", mode = { "n", "v" } },
+        { "<M-left>",  mode = { "n", "v" } },
         { "<M-right>", mode = { "n", "v" } },
-        { "<M-down>", mode = { "n", "v" } },
-        { "<M-up>", mode = { "n", "v" } },
+        { "<M-down>",  mode = { "n", "v" } },
+        { "<M-up>",    mode = { "n", "v" } },
       },
       opts = {
         mappings = {
@@ -207,10 +220,10 @@ local config = {
           right = "<M-right>",
           down = "<M-down>",
           up = "<M-up>",
-          left_line = "<M-left>",
-          right_line = "<M-right>",
-          down_line = "<M-down>",
-          up_line = "<M-up>",
+          -- left_line = "<M-left>",
+          -- right_line = "<M-right>",
+          -- down_line = "<M-down>",
+          -- up_line = "<M-up>",
         },
       },
     },
@@ -233,7 +246,7 @@ local config = {
     -- colorscheme
     {
       "neanias/everforest-nvim",
-      config = function() require("everforest").setup { background = "hard" } end,
+      -- config = function() require("everforest").setup { background = "hard" } end,
     },
 
     {
@@ -282,17 +295,23 @@ local config = {
     },
 
     {
+      "ruifm/gitlinker.nvim",
+      dependencies = { "nvim-lua/plenary.nvim" },
+      config = function() require("gitlinker").setup() end,
+    },
+
+    {
       "echasnovski/mini.surround",
       keys = function(plugin, keys)
         -- Populate the keys based on the user's options
         local opts = require("lazy.core.plugin").values(plugin, "opts", false)
         local mappings = {
-          { opts.mappings.add, desc = "Add surrounding", mode = { "n", "v" } },
-          { opts.mappings.delete, desc = "Delete surrounding" },
-          { opts.mappings.find, desc = "Find right surrounding" },
-          { opts.mappings.find_left, desc = "Find left surrounding" },
-          { opts.mappings.highlight, desc = "Highlight surrounding" },
-          { opts.mappings.replace, desc = "Replace surrounding" },
+          { opts.mappings.add,            desc = "Add surrounding",                     mode = { "n", "v" } },
+          { opts.mappings.delete,         desc = "Delete surrounding" },
+          { opts.mappings.find,           desc = "Find right surrounding" },
+          { opts.mappings.find_left,      desc = "Find left surrounding" },
+          { opts.mappings.highlight,      desc = "Highlight surrounding" },
+          { opts.mappings.replace,        desc = "Replace surrounding" },
           { opts.mappings.update_n_lines, desc = "Update `MiniSurround.config.n_lines`" },
         }
         return vim.list_extend(mappings, keys)
@@ -373,6 +392,7 @@ local config = {
           -- Set a formatter
           -- null_ls.builtins.formatting.stylua,
           -- null_ls.builtins.formatting.prettier,
+          -- null_ls.builtins.diagnostics.eslint,
           null_ls.builtins.formatting.prettierd,
         }
         return config -- return final config table
