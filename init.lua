@@ -8,23 +8,7 @@
 -- where a value with no key simply has an implicit numeric key
 local config = {
   -- Configure AstroNvim updates
-  -- updater = {
-  --   remote = "origin", -- remote to use
-  --   channel = "stable", -- "stable" or "nightly"
-  --   version = "latest", -- "latest", tag name, or regex search like "v1.*" to only do updates before v2 (STABLE ONLY)
-  --   branch = "main", -- branch name (NIGHTLY ONLY)
-  --   commit = nil, -- commit hash (NIGHTLY ONLY)
-  --   pin_plugins = nil, -- nil, true, false (nil will pin plugins on stable only)
-  --   skip_prompts = false, -- skip prompts about breaking changes
-  --   show_changelog = true, -- show the changelog after performing an update
-  --   auto_quit = false, -- automatically quit the current session after a successful update
-  --   -- remotes = { -- easily add new remotes to track
-  --   --   ["remote_name"] = "https://remote_url.come/repo.git", -- full remote url
-  --   --   ["remote2"] = "github_user/repo", -- GitHub user/repo shortcut,
-  --   --   ["remote3"] = "github_user", -- GitHub user assume AstroNvim fork
-  --   -- },
-  -- },
-
+  updater = { channel = "nightly", skip_prompts = true },
   -- Set colorscheme to use
   colorscheme = "everforest",
   -- Add highlight groups in any theme
@@ -67,7 +51,7 @@ local config = {
     -- enable servers that you already have installed without mason
     servers = {
       -- "pyright"
-      -- "eslint",
+      "eslint",
     },
     formatting = {
       -- control auto formatting on save
@@ -95,12 +79,12 @@ local config = {
       },
     },
     -- add to the global LSP on_attach function
-    on_attach = function(client, bufnr)
-      vim.api.nvim_create_autocmd("BufWritePre", {
-        buffer = bufnr,
-        command = "EslintFixAll",
-      })
-    end,
+    -- on_attach = function(client, bufnr)
+    --   vim.api.nvim_create_autocmd("BufWritePre", {
+    --     buffer = bufnr,
+    --     command = "eslintFixAll",
+    --   })
+    -- end,
 
     -- override the LSP setup handler function based on server name
     -- setup_handlers = {
@@ -114,44 +98,15 @@ local config = {
     -- },
 
     -- Add overrides for LSP server settings, the keys are the name of the server
-    config = {
-      tailwindcss = {
-        cmd = { "tailwindcss-language-server", "--stdio" },
-      },
-      tsserver = {
-        cmd = { "typescript-language-server", "--stdio" },
-      },
-      -- example for addings schemas to yamlls
-      -- yamlls = { -- override table for require("lspconfig").yamlls.setup({...})
-      --   settings = {
-      --     yaml = {
-      --       schemas = {
-      --         ["http://json.schemastore.org/github-workflow"] = ".github/workflows/*.{yml,yaml}",
-      --         ["http://json.schemastore.org/github-action"] = ".github/action.{yml,yaml}",
-      --         ["http://json.schemastore.org/ansible-stable-2.9"] = "roles/tasks/*.{yml,yaml}",
-      --       },
-      --     },
-      --   },
-      -- },
-    },
+    config = {},
   },
-  -- Mapping data with "desc" stored directly by vim.keymap.set().
-  --
-  -- Please use this mappings table to set keyboard mapping since this is the
-  -- lower level configuration and more robust one. (which-key will
-  -- automatically pick-up stored data by this setting.)
   mappings = {
-    -- first key is the mode
     n = {
       ["<M-o>"] = { "o<ESC>" },
       ["<M-O>"] = { "O<ESC>" },
 
       ["<C-d>"] = { "<C-d>zz" },
       ["<C-u>"] = { "<C-u>zz" },
-      ["<M-left>"] = false,
-      ["<M-right>"] = false,
-      ["<M-down>"] = false,
-      ["<M-up>"] = false,
       -- second key is the lefthand side of the map
       -- mappings seen under group name "Buffer"
       ["<leader>bb"] = { "<cmd>tabnew<cr>", desc = "New tab" },
@@ -166,6 +121,14 @@ local config = {
       ["gv"] = { ":vsplit<CR>gd", desc = "go-to-definition-split" },
       -- quick save
       ["<C-s>"] = { ":w!<cr>", desc = "Save File" }, -- change description but the same command
+      ["<C-Left>"] = { function() require("smart-splits").move_cursor_left() end, desc = "Move to left split" },
+      ["<C-Down>"] = { function() require("smart-splits").move_cursor_down() end, desc = "Move to below split" },
+      ["<C-Up>"] = { function() require("smart-splits").move_cursor_up() end, desc = "Move to above split" },
+      ["<C-Right>"] = { function() require("smart-splits").move_cursor_right() end, desc = "Move to right split" },
+      ["<C-h>"] = { function() require("smart-splits").resize_left() end, desc = "Resize split left" },
+      ["<C-l>"] = { function() require("smart-splits").resize_right() end, desc = "Resize split right" },
+      ["<C-j>"] = { function() require("smart-splits").resize_down() end, desc = "Resize split down" },
+      ["<C-k>"] = { function() require("smart-splits").resize_up() end, desc = "Resize split up" },
     },
     t = {
       -- setting a mapping to false will disable it
@@ -185,167 +148,45 @@ local config = {
   },
   -- Configure plugins
   plugins = {
+    { "neanias/everforest-nvim" },
+    "AstroNvim/astrocommunity",
+    { import = "astrocommunity.colorscheme.rose-pine" },
+    { import = "astrocommunity.colorscheme.catppuccin",      enabled = true },
+    { import = "astrocommunity.completion.copilot-lua" },
+    { import = "astrocommunity.completion.copilot-lua-cmp" },
+    { import = "astrocommunity.indent.indent-blankline-nvim" },
+    { import = "astrocommunity.indent.mini-indentscope" },
+    { import = "astrocommunity.motion.mini-move" },
+    { import = "astrocommunity.diagnostics.trouble-nvim" },
     {
-      "jose-elias-alvarez/typescript.nvim",
-      ft = { "ts", "js", "tsx", "jsx" },
-      opts = function() return { server = require("astronvim.utils.lsp").config "tsserver" } end,
-    },
-
-    -- good vertical motions
-    {
-      "ggandor/leap.nvim",
-      event = "VeryLazy",
-      config = function(_, _)
-        local leap = require "leap"
-        leap.add_default_mappings(true)
-      end,
-    },
-
-    -- "multi select"
-    { "mg979/vim-visual-multi",                     branch = "master", event = "BufRead" },
-
-    {
-      "echasnovski/mini.move",
-      config = function(_, opts) require("mini.move").setup(opts) end,
-      enabled = true,
+      "mini.move",
       keys = {
-        { "<M-left>",  mode = { "n", "v" } },
-        { "<M-right>", mode = { "n", "v" } },
-        { "<M-down>",  mode = { "n", "v" } },
-        { "<M-up>",    mode = { "n", "v" } },
+        { "<A-Right>", mode = { "n", "v" } },
+        { "<A-Up>",    mode = { "n", "v" } },
+        { "<A-Down>",  mode = { "n", "v" } },
+        { "<A-Left>",  mode = { "n", "v" } },
       },
       opts = {
         mappings = {
-          left = "<M-left>",
-          right = "<M-right>",
-          down = "<M-down>",
-          up = "<M-up>",
-          -- left_line = "<M-left>",
-          -- right_line = "<M-right>",
-          -- down_line = "<M-down>",
-          -- up_line = "<M-up>",
+          left = "<A-Left>",
+          right = "<A-Right>",
+          down = "<A-Down>",
+          up = "<A-Up>",
+          line_left = "<A-Left>",
+          line_right = "<A-Right>",
+          line_down = "<A-Down>",
+          line_up = "<A-Up>",
         },
       },
     },
-
-    -- more dot repeat actions
-    { "tpope/vim-repeat" },
-
-    -- jump between more things with %
-    { "andymass/vim-matchup" },
-
-    -- better typescript commentstrings
-    { "JoosepAlviste/nvim-ts-context-commentstring" },
-
-    -- dedicated git diff viewer
+    { import = "astrocommunity.motion.mini-bracketed" },
+    { import = "astrocommunity.motion.mini-surround" },
+    { import = "astrocommunity.motion.mini-ai" },
     {
-      "sindrets/diffview.nvim",
-      event = "BufRead",
-    },
-
-    -- colorscheme
-    {
-      "neanias/everforest-nvim",
-      -- config = function() require("everforest").setup { background = "hard" } end,
-    },
-
-    {
-      "gbprod/cutlass.nvim",
-      keys = {
-        "x",
-        "d",
-        "c",
-        "X",
-        "D",
-        "C",
-        "m",
-      },
-      config = function()
-        require("cutlass").setup {
-          exclude = { "ns", "nS" },
-          cut_key = "m",
-        }
-      end,
-    },
-
-    {
-      "folke/zen-mode.nvim",
-      cmd = "ZenMode",
-      config = true,
-    },
-
-    -- copilot autocompletion and suggestions
-    {
-      "zbirenbaum/copilot.lua",
-      cmd = "Copilot",
-      event = "InsertEnter",
-      config = function()
-        vim.schedule(function() require("copilot").setup { suggestion = { auto_trigger = true } } end, 100)
-      end,
-    },
-
-    -- add telescope-fzf-native
-    {
-      "telescope.nvim",
-      dependencies = {
-        "nvim-telescope/telescope-fzf-native.nvim",
-        build = "make",
-        config = function() require("telescope").load_extension "fzf" end,
-      },
-    },
-
-    {
-      "ruifm/gitlinker.nvim",
-      dependencies = { "nvim-lua/plenary.nvim" },
-      config = function() require("gitlinker").setup() end,
-    },
-
-    {
-      "echasnovski/mini.surround",
-      keys = function(plugin, keys)
-        -- Populate the keys based on the user's options
-        local opts = require("lazy.core.plugin").values(plugin, "opts", false)
-        local mappings = {
-          { opts.mappings.add,            desc = "Add surrounding",                     mode = { "n", "v" } },
-          { opts.mappings.delete,         desc = "Delete surrounding" },
-          { opts.mappings.find,           desc = "Find right surrounding" },
-          { opts.mappings.find_left,      desc = "Find left surrounding" },
-          { opts.mappings.highlight,      desc = "Highlight surrounding" },
-          { opts.mappings.replace,        desc = "Replace surrounding" },
-          { opts.mappings.update_n_lines, desc = "Update `MiniSurround.config.n_lines`" },
-        }
-        return vim.list_extend(mappings, keys)
-      end,
-      opts = {
-        mappings = {
-          add = "gza", -- Add surrounding in Normal and Visual modes
-          delete = "gzd", -- Delete surrounding
-          find = "gzf", -- Find surrounding (to the right)
-          find_left = "gzF", -- Find surrounding (to the left)
-          highlight = "gzh", -- Highlight surrounding
-          replace = "gzr", -- Replace surrounding
-          update_n_lines = "gzn", -- Update `n_lines`
-        },
-      },
-      config = function(_, opts)
-        -- use gz mappings instead of s to prevent conflict with leap
-        require("mini.surround").setup(opts)
-      end,
-    },
-    {
-      "echasnovski/mini.ai",
+      "mini.ai",
       keys = {
         { "a", mode = { "x", "o" } },
         { "i", mode = { "x", "o" } },
-      },
-      dependencies = {
-        {
-          "nvim-treesitter/nvim-treesitter-textobjects",
-          init = function()
-            -- no need to load the plugin, since we only need its queries
-            require("lazy.core.loader").disable_rtp_plugin "nvim-treesitter-textobjects"
-          end,
-        },
       },
       opts = function()
         local ai = require "mini.ai"
@@ -366,38 +207,115 @@ local config = {
         ai.setup(opts)
       end,
     },
-    -- By adding to the which-key config and using our helper function you can add more which-key registered bindings
-    -- {
-    --   "folke/which-key.nvim",
-    --   config = function(plugin, opts)
-    --     plugin.default_config(opts)
-    --     -- Add bindings which show up as group name
-    --     local wk = require "which-key"
-    --     wk.register({
-    --       b = { name = "Buffer" },
-    --     }, { mode = "n", prefix = "<leader>" })
-    --   end,
-    -- },
-
+    { import = "astrocommunity.pack.typescript" },
+    { import = "astrocommunity.pack.python" },
+    { import = "astrocommunity.editing-support.zen-mode-nvim" },
+    { import = "astrocommunity.comment.mini-comment" },
+    { import = "astrocommunity.utility.noice-nvim" },
+    {
+      "noice.nvim",
+      opts = {
+        presets = { lsp_doc_border = true },
+        lsp = {
+          progress = {
+            enabled = false,
+          },
+        },
+        routes = {
+          {
+            filter = {
+              event = "msg_show",
+              kind = "",
+              find = "written",
+            },
+            opts = { skip = true },
+          },
+        },
+      },
+    }, -- good vertical motions
+    {
+      "ggandor/leap.nvim",
+      event = "VeryLazy",
+      config = function(_, _)
+        local leap = require "leap"
+        leap.add_default_mappings(true)
+      end,
+    },
+    -- "multi select"
+    { "mg979/vim-visual-multi", branch = "master", event = "BufRead" },
+    -- more dot repeat actions
+    { "tpope/vim-repeat" },
+    -- jump between more things with %
+    { "andymass/vim-matchup" },
+    -- dedicated git diff viewer
+    {
+      "sindrets/diffview.nvim",
+      event = "BufRead",
+    },
+    -- stop d and c from yanking to a register
+    {
+      "gbprod/cutlass.nvim",
+      keys = {
+        "x",
+        "d",
+        "c",
+        "X",
+        "D",
+        "C",
+        "m",
+      },
+      config = function()
+        require("cutlass").setup {
+          exclude = { "ns", "nS" },
+          cut_key = "<leader>x",
+        }
+      end,
+    },
+    -- Show environment and hidden files in neotree
+    {
+      "nvim-neo-tree/neo-tree.nvim",
+      opts = {
+        close_if_last_window = false,
+        filesystem = {
+          filtered_items = {
+            visible = true,
+            hide_dotfiles = false,
+            hide_gitignored = false,
+          },
+          hide_by_name = {
+            "node_modules",
+            ".git",
+          },
+          never_show = { -- remains hidden even if visible is toggled to true, this overrides always_show
+            ".DS_Store",
+          },
+        },
+      },
+    },
+    -- add telescope-fzf-native
+    {
+      "telescope.nvim",
+      dependencies = {
+        "nvim-telescope/telescope-fzf-native.nvim",
+        build = "make",
+        config = function() require("telescope").load_extension "fzf" end,
+      },
+    },
+    -- null-ls for formatting and linting
     {
       "jose-elias-alvarez/null-ls.nvim",
       opts = function(_, config)
         -- config variable is the default configuration table for the setup function call
         local null_ls = require "null-ls"
 
-        -- Check supported formatters and linters
-        -- https://github.com/jose-elias-alvarez/null-ls.nvim/tree/main/lua/null-ls/builtins/formatting
-        -- https://github.com/jose-elias-alvarez/null-ls.nvim/tree/main/lua/null-ls/builtins/diagnostics
         config.sources = {
-          -- Set a formatter
-          -- null_ls.builtins.formatting.stylua,
-          -- null_ls.builtins.formatting.prettier,
-          -- null_ls.builtins.diagnostics.eslint,
           null_ls.builtins.formatting.prettierd,
+          require "typescript.extensions.null-ls.code-actions",
         }
         return config -- return final config table
       end,
     },
+    -- ensure installed and keybindings for treesitter
     {
       "nvim-treesitter/nvim-treesitter",
       opts = {
