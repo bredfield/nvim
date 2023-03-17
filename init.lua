@@ -25,20 +25,20 @@ local config = {
     opt = {
       -- set to true or false etc.
       relativenumber = true, -- sets vim.opt.relativenumber
-      number = true, -- sets vim.opt.number
-      spell = false, -- sets vim.opt.spell
-      signcolumn = "auto", -- sets vim.opt.signcolumn to auto
-      wrap = false, -- sets vim.opt.wrap
+      number = true,         -- sets vim.opt.number
+      spell = false,         -- sets vim.opt.spell
+      signcolumn = "auto",   -- sets vim.opt.signcolumn to auto
+      wrap = false,          -- sets vim.opt.wrap
     },
     g = {
-      mapleader = " ", -- sets vim.g.mapleader
-      autoformat_enabled = true, -- enable or disable auto formatting at start (lsp.formatting.format_on_save must be enabled)
-      cmp_enabled = true, -- enable completion at start
-      autopairs_enabled = true, -- enable autopairs at start
-      diagnostics_enabled = true, -- enable diagnostics at start
+      mapleader = " ",                   -- sets vim.g.mapleader
+      autoformat_enabled = true,         -- enable or disable auto formatting at start (lsp.formatting.format_on_save must be enabled)
+      cmp_enabled = true,                -- enable completion at start
+      autopairs_enabled = true,          -- enable autopairs at start
+      diagnostics_enabled = true,        -- enable diagnostics at start
       status_diagnostics_enabled = true, -- enable diagnostics in statusline
-      icons_enabled = true, -- disable icons in the UI (disable if no nerd font is available, requires :PackerSync after changing)
-      ui_notifications_enabled = true, -- disable notifications when toggling UI elements
+      icons_enabled = true,              -- disable icons in the UI (disable if no nerd font is available, requires :PackerSync after changing)
+      ui_notifications_enabled = true,   -- disable notifications when toggling UI elements
     },
   },
   -- Diagnostics configuration (for vim.diagnostics.config({...})) when diagnostics are on
@@ -51,12 +51,12 @@ local config = {
     -- enable servers that you already have installed without mason
     servers = {
       -- "pyright"
-      "eslint",
+      -- "eslint",
     },
     formatting = {
       -- control auto formatting on save
       format_on_save = {
-        enabled = true, -- enable or disable format on save globally
+        enabled = true,     -- enable or disable format on save globally
         allow_filetypes = { -- enable format on save for specified filetypes only
           -- "go",
         },
@@ -79,13 +79,16 @@ local config = {
       },
     },
     -- add to the global LSP on_attach function
-    -- on_attach = function(client, bufnr)
-    --   vim.api.nvim_create_autocmd("BufWritePre", {
-    --     buffer = bufnr,
-    --     command = "eslintFixAll",
-    --   })
-    -- end,
-
+    on_attach = function(client, bufnr)
+      if client.name == "tsserver" then
+        client.server_capabilities.documentFormattingProvider = false -- 0.8 and later
+      end
+      -- rest of the initialization
+      -- vim.api.nvim_create_autocmd("BufWritePre", {
+      --   buffer = bufnr,
+      --   command = "eslintFixAll",
+      -- })
+    end,
     -- override the LSP setup handler function based on server name
     -- setup_handlers = {
     --   -- first function changes the default setup handler
@@ -104,7 +107,6 @@ local config = {
     n = {
       ["<M-o>"] = { "o<ESC>" },
       ["<M-O>"] = { "O<ESC>" },
-
       ["<C-d>"] = { "<C-d>zz" },
       ["<C-u>"] = { "<C-u>zz" },
       -- second key is the lefthand side of the map
@@ -151,13 +153,20 @@ local config = {
     { "neanias/everforest-nvim" },
     "AstroNvim/astrocommunity",
     { import = "astrocommunity.colorscheme.rose-pine" },
-    { import = "astrocommunity.colorscheme.catppuccin",      enabled = true },
+    { import = "astrocommunity.colorscheme.tokyonight" },
+    { import = "astrocommunity.colorscheme.catppuccin" },
     { import = "astrocommunity.completion.copilot-lua" },
     { import = "astrocommunity.completion.copilot-lua-cmp" },
     { import = "astrocommunity.indent.indent-blankline-nvim" },
     { import = "astrocommunity.indent.mini-indentscope" },
     { import = "astrocommunity.motion.mini-move" },
+    { import = "astrocommunity.motion.portal-nvim" },
     { import = "astrocommunity.diagnostics.trouble-nvim" },
+    { import = "astrocommunity.diagnostics.lsp_lines-nvim" },
+    { import = "astrocommunity.editing-support.todo-comments-nvim" },
+    { import = "astrocommunity.terminal-integration.flatten-nvim" },
+    { import = "astrocommunity.markdown-and-latex.glow-nvim" },
+
     {
       "mini.move",
       keys = {
@@ -179,9 +188,10 @@ local config = {
         },
       },
     },
-    { import = "astrocommunity.motion.mini-bracketed" },
     { import = "astrocommunity.motion.mini-surround" },
     { import = "astrocommunity.motion.mini-ai" },
+    { import = "astrocommunity.motion.mini-bracketed" },
+    { import = "astrocommunity.project.nvim-spectre" },
     {
       "mini.ai",
       keys = {
@@ -212,6 +222,7 @@ local config = {
     { import = "astrocommunity.editing-support.zen-mode-nvim" },
     { import = "astrocommunity.comment.mini-comment" },
     { import = "astrocommunity.utility.noice-nvim" },
+    { import = "astrocommunity.debugging.nvim-bqf" },
     {
       "noice.nvim",
       opts = {
@@ -222,6 +233,22 @@ local config = {
           },
         },
         routes = {
+          {
+            filter = {
+              event = "msg_show",
+              kind = "",
+              find = "less line",
+            },
+            opts = { skip = true },
+          },
+          {
+            filter = {
+              event = "msg_show",
+              kind = "",
+              find = "more line",
+            },
+            opts = { skip = true },
+          },
           {
             filter = {
               event = "msg_show",
@@ -302,19 +329,19 @@ local config = {
       },
     },
     -- null-ls for formatting and linting
-    {
-      "jose-elias-alvarez/null-ls.nvim",
-      opts = function(_, config)
-        -- config variable is the default configuration table for the setup function call
-        local null_ls = require "null-ls"
-
-        config.sources = {
-          null_ls.builtins.formatting.prettierd,
-          require "typescript.extensions.null-ls.code-actions",
-        }
-        return config -- return final config table
-      end,
-    },
+    -- {
+    --   "jose-elias-alvarez/null-ls.nvim",
+    --   opts = function(_, config)
+    --     -- config variable is the default configuration table for the setup function call
+    --     local null_ls = require "null-ls"
+    --
+    --     config.sources = {
+    --       -- null_ls.builtins.formatting.prettierd,
+    --       require "typescript.extensions.null-ls.code-actions",
+    --     }
+    --     return config -- return final config table
+    --   end,
+    -- },
     -- ensure installed and keybindings for treesitter
     {
       "nvim-treesitter/nvim-treesitter",
