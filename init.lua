@@ -10,7 +10,7 @@ local config = {
   -- Configure AstroNvim updates
   updater = { channel = "nightly", skip_prompts = true },
   -- Set colorscheme to use
-  colorscheme = "everforest",
+  colorscheme = "catppuccin-macchiato",
   -- Add highlight groups in any theme
   highlights = {
     -- init = { -- this table overrides highlights in all themes
@@ -24,11 +24,11 @@ local config = {
   options = {
     opt = {
       -- set to true or false etc.
-      relativenumber = true, -- sets vim.opt.relativenumber
-      number = true,         -- sets vim.opt.number
-      spell = false,         -- sets vim.opt.spell
-      signcolumn = "auto",   -- sets vim.opt.signcolumn to auto
-      wrap = false,          -- sets vim.opt.wrap
+      relativenumber = false, -- sets vim.opt.relativenumber
+      number = true,          -- sets vim.opt.number
+      spell = false,          -- sets vim.opt.spell
+      signcolumn = "auto",    -- sets vim.opt.signcolumn to auto
+      wrap = false,           -- sets vim.opt.wrap
     },
     g = {
       mapleader = " ",                   -- sets vim.g.mapleader
@@ -39,10 +39,16 @@ local config = {
       status_diagnostics_enabled = true, -- enable diagnostics in statusline
       icons_enabled = true,              -- disable icons in the UI (disable if no nerd font is available, requires :PackerSync after changing)
       ui_notifications_enabled = true,   -- disable notifications when toggling UI elements
+      OPENAI_API_KEY = "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",
+      VM_maps = {
+        ["Add Cursor Down"] = "",
+        ["Add Cursor Up"] = "",
+      },
     },
   },
   -- Diagnostics configuration (for vim.diagnostics.config({...})) when diagnostics are on
   diagnostics = {
+    -- this is disabled due to lsp_lines
     virtual_text = true,
     underline = true,
   },
@@ -79,10 +85,11 @@ local config = {
       },
     },
     -- add to the global LSP on_attach function
-    on_attach = function(client, bufnr)
+    on_attach = function(client)
       if client.name == "tsserver" then
         client.server_capabilities.documentFormattingProvider = false -- 0.8 and later
       end
+
       -- rest of the initialization
       -- vim.api.nvim_create_autocmd("BufWritePre", {
       --   buffer = bufnr,
@@ -120,7 +127,6 @@ local config = {
       ["<leader>b"] = { name = "Buffers" },
       -- go-to-definition in a new split
       ["gd"] = { "<cmd>lua vim.lsp.buf.definition()<cr>", desc = "go-to-definition" },
-      ["gv"] = { ":vsplit<CR>gd", desc = "go-to-definition-split" },
       -- quick save
       ["<C-s>"] = { ":w!<cr>", desc = "Save File" }, -- change description but the same command
       ["<C-Left>"] = { function() require("smart-splits").move_cursor_left() end, desc = "Move to left split" },
@@ -155,18 +161,35 @@ local config = {
     { import = "astrocommunity.colorscheme.rose-pine" },
     { import = "astrocommunity.colorscheme.tokyonight" },
     { import = "astrocommunity.colorscheme.catppuccin" },
-    { import = "astrocommunity.completion.copilot-lua" },
+    {
+      "catppuccin",
+      opts = {
+        integrations = {
+          nvimtree = false,
+          ts_rainbow = false,
+          aerial = true,
+          dap = { enabled = true, enable_ui = true },
+          leap = true,
+          mason = true,
+          neotree = true,
+          notify = true,
+          semantic_tokens = true,
+          symbols_outline = true,
+          telescope = true,
+          which_key = true,
+        },
+      },
+    },
+    -- { import = "astrocommunity.completion.copilot-lua" },
     { import = "astrocommunity.completion.copilot-lua-cmp" },
     { import = "astrocommunity.indent.indent-blankline-nvim" },
     { import = "astrocommunity.indent.mini-indentscope" },
     { import = "astrocommunity.motion.mini-move" },
-    { import = "astrocommunity.motion.portal-nvim" },
+    { import = "astrocommunity.motion.vim-matchup" },
     { import = "astrocommunity.diagnostics.trouble-nvim" },
-    { import = "astrocommunity.diagnostics.lsp_lines-nvim" },
     { import = "astrocommunity.editing-support.todo-comments-nvim" },
     { import = "astrocommunity.terminal-integration.flatten-nvim" },
     { import = "astrocommunity.markdown-and-latex.glow-nvim" },
-
     {
       "mini.move",
       keys = {
@@ -188,41 +211,21 @@ local config = {
         },
       },
     },
-    { import = "astrocommunity.motion.mini-surround" },
-    { import = "astrocommunity.motion.mini-ai" },
-    { import = "astrocommunity.motion.mini-bracketed" },
     { import = "astrocommunity.project.nvim-spectre" },
-    {
-      "mini.ai",
-      keys = {
-        { "a", mode = { "x", "o" } },
-        { "i", mode = { "x", "o" } },
-      },
-      opts = function()
-        local ai = require "mini.ai"
-        return {
-          n_lines = 500,
-          custom_textobjects = {
-            o = ai.gen_spec.treesitter({
-              a = { "@block.outer", "@conditional.outer", "@loop.outer" },
-              i = { "@block.inner", "@conditional.inner", "@loop.inner" },
-            }, {}),
-            f = ai.gen_spec.treesitter({ a = "@function.outer", i = "@function.inner" }, {}),
-            c = ai.gen_spec.treesitter({ a = "@class.outer", i = "@class.inner" }, {}),
-          },
-        }
-      end,
-      config = function(_, opts)
-        local ai = require "mini.ai"
-        ai.setup(opts)
-      end,
-    },
     { import = "astrocommunity.pack.typescript" },
+    { import = "astrocommunity.pack.tailwindcss" },
     { import = "astrocommunity.pack.python" },
+    { import = "astrocommunity.pack.prisma" },
     { import = "astrocommunity.editing-support.zen-mode-nvim" },
     { import = "astrocommunity.comment.mini-comment" },
     { import = "astrocommunity.utility.noice-nvim" },
     { import = "astrocommunity.debugging.nvim-bqf" },
+    { import = "astrocommunity.motion.leap-nvim" },
+    { import = "astrocommunity.motion.mini-ai" },
+    { import = "astrocommunity.motion.mini-surround" },
+    { import = "astrocommunity.motion.mini-bracketed" },
+    { import = "astrocommunity.motion.portal-nvim" },
+    { import = "astrocommunity.syntax.hlargs-nvim" },
     {
       "noice.nvim",
       opts = {
@@ -259,21 +262,23 @@ local config = {
           },
         },
       },
-    }, -- good vertical motions
+    },
+    -- Lazy
     {
-      "ggandor/leap.nvim",
+      "jackMort/ChatGPT.nvim",
       event = "VeryLazy",
-      config = function(_, _)
-        local leap = require "leap"
-        leap.add_default_mappings(true)
-      end,
+      config = function() require("chatgpt").setup() end,
+      dependencies = {
+        "MunifTanjim/nui.nvim",
+        "nvim-lua/plenary.nvim",
+        "nvim-telescope/telescope.nvim",
+      },
     },
     -- "multi select"
-    { "mg979/vim-visual-multi", branch = "master", event = "BufRead" },
+    { "mg979/vim-visual-multi",   branch = "master", event = "BufRead" },
     -- more dot repeat actions
     { "tpope/vim-repeat" },
-    -- jump between more things with %
-    { "andymass/vim-matchup" },
+    { "johmsalas/text-case.nvim", lazy = false,      config = function() require("textcase").setup {} end },
     -- dedicated git diff viewer
     {
       "sindrets/diffview.nvim",
@@ -291,6 +296,7 @@ local config = {
         "C",
         "m",
       },
+      lazy = false,
       config = function()
         require("cutlass").setup {
           exclude = { "ns", "nS" },
@@ -325,27 +331,44 @@ local config = {
       dependencies = {
         "nvim-telescope/telescope-fzf-native.nvim",
         build = "make",
-        config = function() require("telescope").load_extension "fzf" end,
+        config = function()
+          local trouble = require "trouble.providers.telescope"
+
+          local telescope = require "telescope"
+
+          telescope.setup {
+            defaults = {
+              mappings = {
+                i = { ["<c-t>"] = trouble.open_with_trouble },
+                n = { ["<c-t>"] = trouble.open_with_trouble },
+              },
+            },
+          }
+          telescope.load_extension "fzf"
+        end,
       },
     },
-    -- null-ls for formatting and linting
-    -- {
-    --   "jose-elias-alvarez/null-ls.nvim",
-    --   opts = function(_, config)
-    --     -- config variable is the default configuration table for the setup function call
-    --     local null_ls = require "null-ls"
-    --
-    --     config.sources = {
-    --       -- null_ls.builtins.formatting.prettierd,
-    --       require "typescript.extensions.null-ls.code-actions",
-    --     }
-    --     return config -- return final config table
-    --   end,
-    -- },
+    -- update the aerial nav keybinds
+    {
+      "stevearc/aerial.nvim",
+      opts = {
+        nav = {
+          -- Jump to symbol in source window when the cursor moves
+          autojump = true,
+          -- Keymaps in the nav window
+          keymaps = {
+            ["<Left>"] = "actions.left",
+            ["<Right>"] = "actions.right",
+            ["<ESC>"] = "actions.close",
+          },
+        },
+      },
+    },
     -- ensure installed and keybindings for treesitter
     {
       "nvim-treesitter/nvim-treesitter",
       opts = {
+        indent = { enable = true, disable = { "python" } },
         ensure_installed = {
           "bash",
           "help",
